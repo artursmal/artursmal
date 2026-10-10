@@ -6,9 +6,9 @@ Finds apartments **for sale in Rīga (Centrs, Grīziņkalns)** with **4–5 room
 
 ```bash
 pip install -r requirements.txt
-python -m apartment_scraper                        # table to stdout
+python -m apartment_scraper                        # city24.lv, table to stdout
 python -m apartment_scraper --format csv -o results.csv
-python -m apartment_scraper --sources ss --format json -v
+python -m apartment_scraper --sources ss city24        # also include ss.com (still being debugged)
 ```
 
 All criteria are overridable: `--min-rooms --max-rooms --min-area --max-area --max-price --districts`.

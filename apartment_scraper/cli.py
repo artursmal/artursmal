@@ -17,7 +17,8 @@ FIELDS = ["source", "district", "street", "rooms", "area", "floor", "series",
 
 def parse_args(argv=None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Find Rīga apartments on ss.com and city24.lv.")
-    p.add_argument("--sources", nargs="+", choices=SOURCES, default=list(SOURCES))
+    p.add_argument("--sources", nargs="+", choices=SOURCES, default=["city24"],
+                   help="default: city24 (ss.com parsing still being debugged)")
     p.add_argument("--min-rooms", type=int, default=4)
     p.add_argument("--max-rooms", type=int, default=5)
     p.add_argument("--min-area", type=float, default=90)

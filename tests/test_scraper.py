@@ -67,7 +67,7 @@ class SsTest(unittest.TestCase):
             calls = 0
             def get(self, url):
                 F.calls += 1
-                return type("R", (), {"text": SS_PAGE})()
+                return type("R", (), {"text": SS_PAGE, "status_code": 200, "url": url})()
         found = list(ss.scrape(Criteria(districts=("Centrs",)), F()))
         self.assertEqual(len(found), 1)
         self.assertEqual(F.calls, 2)  # page 2 repeats page 1 -> stop

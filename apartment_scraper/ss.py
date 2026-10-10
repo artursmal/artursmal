@@ -101,10 +101,14 @@ def scrape(criteria: Criteria, fetcher: Fetcher, max_pages: int = 200) -> Iterat
         seen: set[str] = set()
         for page in range(1, max_pages + 1):
             url = district_url(district, page)
-            log.info("ss.com %s page %d", district, page)
             resp = fetcher.get(url)
             listings = parse_page(resp.text, district)
             new = [l for l in listings if l.id not in seen]
+            log.info("ss.com %s page %d: %d rows parsed, %d new (HTTP %s, %d bytes, final URL %s)",
+                     district, page, len(listings), len(new), resp.status_code,
+                     len(resp.text), resp.url)
+            if page == 1 and not listings:
+                log.warning("ss.com %s: no listing rows found on %s", district, url)
             if not new:
                 break
             seen.update(l.id for l in new)

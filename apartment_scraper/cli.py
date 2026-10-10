@@ -62,8 +62,9 @@ def write(results: list[Listing], fmt: str, out) -> None:
 
 def main(argv=None) -> None:
     args = parse_args(argv)
-    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING,
-                        format="%(levelname)s %(message)s")
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+    if args.verbose:
+        logging.getLogger("apartment_scraper").setLevel(logging.DEBUG)
     criteria = Criteria(args.min_rooms, args.max_rooms, args.min_area, args.max_area,
                         args.max_price, tuple(args.districts))
     results = collect(criteria, args.sources, Fetcher(delay=args.delay))

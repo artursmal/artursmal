@@ -67,7 +67,9 @@ def _header_columns(soup: BeautifulSoup) -> list[str] | None:
 
 def parse_page(html: str, district: str) -> list[Listing]:
     soup = BeautifulSoup(html, "lxml")
-    columns = _header_columns(soup) or DEFAULT_COLUMNS
+    header = _header_columns(soup)
+    columns = header or DEFAULT_COLUMNS
+    log.debug("ss.com columns (%s): %s", "from header" if header else "default", columns)
     listings = []
     for row in soup.select('tr[id^="tr_"]'):
         row_id = row["id"][3:]
@@ -107,6 +109,10 @@ def scrape(criteria: Criteria, fetcher: Fetcher, max_pages: int = 200) -> Iterat
             log.info("ss.com %s page %d: %d rows parsed, %d new (HTTP %s, %d bytes, final URL %s)",
                      district, page, len(listings), len(new), resp.status_code,
                      len(resp.text), resp.url)
+            if page == 1:
+                for l in listings[:3]:
+                    log.info("  sample: rooms=%s area=%s price=%s street=%s | %s",
+                             l.rooms, l.area, l.price, l.street, l.url)
             if page == 1 and not listings:
                 log.warning("ss.com %s: no listing rows found on %s", district, url)
             if not new:

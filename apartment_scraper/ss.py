@@ -98,9 +98,13 @@ def parse_page(html: str, district: str) -> list[Listing]:
     return listings
 
 
-def scrape(criteria: Criteria, fetcher: Fetcher, max_pages: int = 200) -> Iterator[Listing]:
+def scrape(criteria: Criteria, fetcher: Fetcher, max_pages: int = 200,
+           report: list[str] | None = None) -> Iterator[Listing]:
+    """Yield matching listings; append a human-readable summary per district to `report`."""
+    report = report if report is not None else []
     for district in criteria.districts:
         seen: set[str] = set()
+        matched = 0
         for page in range(1, max_pages + 1):
             url = district_url(district, page)
             resp = fetcher.get(url)
@@ -110,12 +114,19 @@ def scrape(criteria: Criteria, fetcher: Fetcher, max_pages: int = 200) -> Iterat
                      district, page, len(listings), len(new), resp.status_code,
                      len(resp.text), resp.url)
             if page == 1:
+                report.append(f"ss.com {district}: page 1 HTTP {resp.status_code}, "
+                              f"{len(resp.text)} bytes, {len(listings)} rows, final URL {resp.url}")
+                if not listings:
+                    snippet = " ".join(resp.text[:300].split())
+                    report.append(f"  no listing rows found; page starts: {snippet}")
                 for l in listings[:3]:
-                    log.info("  sample: rooms=%s area=%s price=%s street=%s | %s",
-                             l.rooms, l.area, l.price, l.street, l.url)
-            if page == 1 and not listings:
-                log.warning("ss.com %s: no listing rows found on %s", district, url)
+                    report.append(f"  sample: rooms={l.rooms} area={l.area} price={l.price} "
+                                  f"street={l.street} floor={l.floor} | {l.url}")
             if not new:
                 break
             seen.update(l.id for l in new)
-            yield from (l for l in new if criteria.matches(l))
+            for l in new:
+                if criteria.matches(l):
+                    matched += 1
+                    yield l
+        report.append(f"ss.com {district}: {len(seen)} listings scanned, {matched} matched")

@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import logging
+import os
 import sys
 
 from . import city24, ss
@@ -25,7 +26,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--max-area", type=float, default=150)
     p.add_argument("--max-price", type=float, default=320_000)
     p.add_argument("--districts", nargs="+", default=["Centrs", "Grīziņkalns"])
-    p.add_argument("--format", choices=["table", "csv", "json"], default="table")
+    p.add_argument("--format", choices=["table", "csv", "json", "xlsx"], default="table",
+                   help="xlsx writes apartments.xlsx unless -o is given")
     p.add_argument("-o", "--output", help="write to this file instead of stdout")
     p.add_argument("--delay", type=float, default=1.0, help="seconds between requests")
     p.add_argument("-v", "--verbose", action="store_true")
@@ -80,7 +82,13 @@ def main(argv=None) -> None:
                         args.max_price, tuple(args.districts))
     report: list[str] = []
     results = collect(criteria, args.sources, Fetcher(delay=args.delay), report)
-    if args.output:
+    if args.format == "xlsx":
+        from .excel import write_xlsx
+        path = args.output or "apartments.xlsx"
+        write_xlsx(results, path)
+        print("\n".join(report), file=sys.stderr)
+        print(f"Wrote {len(results)} listing(s) to {os.path.abspath(path)}", file=sys.stderr)
+    elif args.output:
         with open(args.output, "w", encoding="utf-8", newline="") as f:
             write(results, args.format, f)
         print("\n".join(report), file=sys.stderr)

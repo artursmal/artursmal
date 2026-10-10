@@ -102,5 +102,18 @@ class City24Test(unittest.TestCase):
         self.assertEqual([l.id for l in city24.scrape(Criteria(), F())], ["4XYZ9"])
 
 
+class ExcelTest(unittest.TestCase):
+    def test_write_xlsx(self):
+        import os, tempfile
+        from openpyxl import load_workbook
+        from apartment_scraper.excel import write_xlsx
+        path = os.path.join(tempfile.mkdtemp(), "a.xlsx")
+        write_xlsx([listing(url="https://example.com/1", street="Tērbatas 1")], path)
+        ws = load_workbook(path).active
+        self.assertEqual(ws["A1"].value, "Price €")
+        self.assertEqual(ws["A2"].value, 300000)
+        self.assertEqual(ws["J2"].hyperlink.target, "https://example.com/1")
+
+
 if __name__ == "__main__":
     unittest.main()
